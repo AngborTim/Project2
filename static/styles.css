@@ -3,11 +3,6 @@ body
 	background-color: #343D46;
 }
 
-html, body 
-{
-  height: 100%;
-}
-
 .navbar 
 {
 	background-color: #757B81; 
@@ -38,7 +33,6 @@ main .form-control
 
 main
 {
-    overflow: hidden;
     color: #D8DEE9;
     min-height: 80%;
     height: 80%;
@@ -56,14 +50,17 @@ h5
 	font-weight: bold;
 }
 
-.full_h
+.message_block, .chanel_name
 {
-	min-height: 100%;
-    height: 100%;
-    background-color: gray;
+	display:block;
 }
 
-#xhannel
+.float-right
 {
-	overflow-y: auto;
+	width: 70%;
+}
+
+.float-left
+{
+	width: 30%
 }

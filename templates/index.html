@@ -1,102 +1,114 @@
-{% extends "layout.html" %}
+<!DOCTYPE html>
 
-{% block title %}Main page{% endblock %}
+<html lang="en">
 
-{% block main %}
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-<div class="container-fluid full_h"><!-- Main container -->
- 
-  <div class="row full_h"> <!-- Main container ROW-->
-    
-    <div class="col-sm-3 border"> <!-- Channels COL-->
+        <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" rel="stylesheet">
         
-        <div class="row p-2 bg-light"> <!-- Channels HEADER-->
-            <div class="col-10 ">
-                <h5>Channels</h5>
-            </div>
-            <div class="col-2 p-0 m-0 ">
-                <span class="badge badge-info">Add +</span>
-            </div>
-        </div><!-- Channels HEADER END-->
+        <link href="/static/styles.css" rel="stylesheet">
+        <link href="/static/favicon.png" rel="icon">
 
-        <div class="row p-2">
-            <div class="col-12 p-2 m-0 border" id="channel">
- 
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
-                Channel list<br />
+        <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+        
+
+        <title>Quire - [CS50W Project 2]</title>
+
+    </head>
+
+    <body>
+        <nav class="navbar border  navbar-dark bg-dark">
+            <a class="navbar-brand" href="/">
+            <img class="logo" src="/static/logo.png" alt="logo" class="img-thumbnail img-fluid">
+            <span>Quire</span>
+            </a>
+           <ul class="navbar-nav ml-auto mt-2">
+                <li class="nav-item"><a class="nav-link" href="/profile">My profile</a></li>
+            </ul>
+        </nav>
+
+        <main class="container-fluid p-0 m-0">
+                <div class="clearfix border">
+                    <div class="float-left">
+                        <span class="navbar bg-light">
+                            <h5>CHANNELS</h5>
+                        </span>
+                        <div class="p-2">
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                            <span class="chanel_name"><a href="#">CHANNEL name</a></span>
+                        </div>
+                    </div>
+
+                <div class="float-right">
+                    <span class="navbar bg-light">
+                        <h5>CHANNEL</h5>
+                    </span>
+                    <span class="message_block">Message..........<br>afasfasf</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <span class="message_block">Message...........</span>
+                    <div class="p-2">
+                        ENTER
+                    </div>
+                </div>
             </div>
-        </div>
-    </div><!-- Channels COL END-->
-    
-
-    <div class="col-sm-9 border"> <!-- MESSAGES COL-->
-
-        <div class="row p-2 bg-light">
-            <div class="col-12">
-                <h5>Channel name</h5>
-            </div>
-        </div>
-        <div class="row p-2">
-            <div class="col-12">
-                Channel messages
-                Channel messages
-                Channel messages
-                Channel messages
-                Channel messages
-                Channel messages
-            </div>
-        </div>
-        <div class="row p-2  align-items-end">
-            <div class="col-12">
-                Sending message
-            </div>
-        </div>
+    </main>
 
 
-    </div><!-- MESSAGES COL END-->
-  </div><!-- Main container ROW END-->
-</div><!-- Main container END-->
+        
+    <footer class="small text-center text-muted fixed-bottom">
+            ברוך הבא בשם יהוה
+    </footer>
 
-{% endblock %}
+</body>
+</html>
