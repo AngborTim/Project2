@@ -1,12 +1,19 @@
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
 body 
 {
 	background-color: #343D46;
+	height: 100vh; 
 }
 
 .navbar 
 {
 	background-color: #757B81; 
 }
+
 
 nav .navbar-brand
 {
@@ -25,17 +32,13 @@ img.logo
 	padding:5px;
 }
 
-main .form-control
-{
-    display: inline-block;
-    width: auto;
-}
 
 main
 {
     color: #D8DEE9;
-    min-height: 80%;
-    height: 80%;
+    min-height: 85%;
+    height: 85%;
+    overflow: hidden;	
 }
 
 footer
@@ -50,11 +53,6 @@ h5
 	font-weight: bold;
 }
 
-.message_block, .chanel_name
-{
-	display:block;
-}
-
 .float-right
 {
 	width: 70%;
@@ -63,4 +61,14 @@ h5
 .float-left
 {
 	width: 30%
+}
+
+.chanel_name, .message_block
+{
+	display: block;
+}
+
+.chanel_name
+{
+	cursor: pointer;
 }
