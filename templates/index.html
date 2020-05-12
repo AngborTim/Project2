@@ -9,7 +9,7 @@
         <link href="/static/styles.css" rel="stylesheet">
         <link href="/static/favicon.png" rel="icon">
 
-        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
 
@@ -17,16 +17,19 @@
         <script src="{{ url_for('static', filename='quire.js') }}"></script>
 
     <title>Quire [CS50W Project 2]</title>
+
+
   </head>
 <body>
-  
+
 <nav class="navbar border  navbar-dark bg-dark">
             <a class="navbar-brand" href="/">
             <img class="logo img-thumbnail img-fluid" src="/static/logo.png" alt="logo">
             <span>Quire</span>
             </a>
             <ul class="navbar-nav ml-auto mt-2">
-                <li class="nav-item"><a class="nav-link" href="/test">Test</a></li>
+                <li class="nav-item text-light font-weight-bold" id="user_label">Hi! User</li>
+                <li class="nav-item"><a class="nav-link" id="logout" href="">Log out</a></li>
             </ul>
 </nav>
 
@@ -44,7 +47,7 @@
         </div>
     </div>
     
-    <div class="d-md-flex" style="height: 90%;">
+    <div id="right_block" class="d-md-flex" style="height: 90%;">
         <div class="float-left overflow-auto p-2">
             <span class="chanel_name p-1 mb-1 border rounded bg-light text-success">
                 <strong>CHANNEL name</strong>
@@ -55,8 +58,8 @@
                 <span class="badge badge-primary badge-pill">1</span>
             </span>
         </div>
-        <div class="float-right p-2" style="position: relative;">
-            <div class="overflow-auto">    
+        <div class="float-right p-2">
+            <div id="messages_block" class="overflow-auto">    
                 <span class="message_block p-1 mb-1 border rounded d-flex w-100 justify-content-between">
                     <p>Message..<br>dsfasfafvvdvdv</p>
                     <small class="text-danger">3 days ago</small>
@@ -67,13 +70,13 @@
                 </span>
             </div>
 
-            <div style="width: 98%; position: absolute; bottom:0;">
+            <div id="send_message_form" style="position: absolute;">
                 <form class="form">
                     <div class="form-row">
                         <div class="col-2">
-                            <button class="btn btn-block btn-outline-success m-1" type="submit">Send</button>
+                            <button class="btn btn-outline-success m-1 w-100" type="submit">Send</button>
                         </div>
-                        <div class="col-9">
+                        <div class="col-10">
                             <input class="form-control m-1" type="text" placeholder="Enter your message">
                         </div>
                     </div>
@@ -83,9 +86,182 @@
     </div>
 </main>
 
-    <footer class="small text-center text-muted fixed-bottom p-0 m-0">
+    <footer id="foo" class="small text-center text-muted fixed-bottom p-0 m-0">
             ברוך הבא בשם יהוה
     </footer>
+
+
+
+<div class="modal" id="registration" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div id ="reg_body" class="modal-content bg-secondary">
+      <div class="modal-header">
+        <h5 class="modal-title">Loggin in</h5>
+      </div>
+      <div class="modal-body">
+           <p class="text-danger bg-light text-center d-none" id="error_with_db_update">Something went wrong. Try login again.</p>
+           <form id="registration_form" novalidate>
+            <div class="form-group">
+                <label for="label_username" class="text-light">Name</label>
+                <input autofocus type="username" class="form-control" id="username" placeholder="Your name" required>
+                <div id="username_error" class="invalid-feedback bg-light">
+                    Please enter username.
+                </div>
+                <div id="username_OK" class="valid-feedback bg-light">
+                    OK
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="label_email" class="text-light">Email address</label>
+                <input type="email" class="form-control" id="email" placeholder="Enter email" required>
+                <div id="email_error" class="invalid-feedback bg-light">
+                    Please enter an email.
+                </div>
+                <div id="email_OK" class="valid-feedback bg-light">
+                    OK
+                </div>
+            </div>
+          </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-light" id="submit" type="submit">Login</button>
+      </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="email_exists" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content bg-secondary">
+      <div class="modal-header">
+        <h5 class="modal-title">Email is already in use!</h5>
+      </div>
+      <div class="modal-body">
+        <p class="text-light text-center">Ups!<br>This email <span class="font-weight-bold" id="email_block"></span> is already in use,<br>but with different name - <span class="font-weight-bold" id="name_block1"></span> (not <span class="font-weight-bold" id="new_name_block1"></span>).<br>What to do?</p>
+      </div>
+
+        <button type="button" class="btn btn-success" id="log_with_old_btn">Let's login with old name <span class="font-weight-bold" id="name_block2"></span>.</button>
+        <button type="button" class="btn btn-secondary" id="log_with_new_btn">Change my name to <span class="font-weight-bold" id="new_name_block2"></span> and login.</button>
+        <button type="button" class="btn btn-secondary" id="correct_btn">I whant to correct my input.</button>
+    </div>
+  </div>
+</div>
+
+
+
+<script type="text/javascript">
+
+var email;
+var db_user_name;
+var new_user_name;
+document.getElementById('registration_form').addEventListener('submit', function(event){
+        event.preventDefault();
+        new_user_name = document.getElementById('username').value;
+        email = document.getElementById('email').value;
+        if (check_name(new_user_name)) {
+            check_email(email, new_user_name);    
+        }
+    });
+
+
+function check_name(new_user_name){
+    if (new_user_name === "") {
+        document.getElementById('username').classList.remove('is-valid');
+        document.getElementById('username').classList.add('is-invalid');
+        return false;
+    }
+    else {
+        document.getElementById('username').classList.remove('is-invalid');
+        document.getElementById('username').classList.add('is-valid');
+        return true; 
+    }
+}
+
+
+function check_email(email, new_user_name){
+    var pattern = /^\b[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b$/i;
+    if (email != "" && pattern.test(email)){
+        $.get( "check", { email } )
+            .done(function( data ) {
+                // если такой мыл есть
+                if (data['success'] == false){
+                    document.getElementById('email').classList.remove('is-invalid');
+                    document.getElementById('email').classList.add('is-valid');
+                    db_user_name = data['username'];
+                    if (db_user_name == new_user_name) {
+                        // если такая электропочта есть и имя совпадает с БД, входим
+                        login(email, new_user_name);               
+                    }
+                    else {
+                        // если нет - выводим запрос на дальнейшие действия
+                        $('#registration').modal('hide');
+                        $('#email_exists').modal({ backdrop: 'static', keyboard: false })
+                        $('#email_exists').find('#email_block').text(email);
+                        $('#email_exists').find('#name_block1').text(db_user_name);
+                        $('#email_exists').find('#name_block2').text(db_user_name);
+                        $('#email_exists').find('#new_name_block1').text(' \''+new_user_name+'\'');
+                        $('#email_exists').find('#new_name_block2').text(new_user_name);
+                    }
+                    return true;
+                }
+                if (data['success'] == true){
+                    document.getElementById('email').classList.remove('is-invalid');
+                    document.getElementById('email').classList.add('is-valid');
+                    return true;
+                }
+        });
+   }
+   else {
+        document.getElementById('email').classList.remove('is-valid');
+        document.getElementById('email').classList.add('is-invalid');
+        document.getElementById('email_error').innerHTML = 'Please enter an email.';
+        return false;
+   }
+}
+
+
+document.addEventListener('DOMContentLoaded', function(){
+  // добавляем logout
+document.getElementById('logout').addEventListener("click", function(){
+    localStorage.setItem('username', '');
+    localStorage.setItem('email', '');
+    }); 
+  // заходим со старым именем
+  document.getElementById('log_with_old_btn').addEventListener("click", function(){
+        login( email, db_user_name);
+    }); 
+  // заходим с новым именем, обновляя его в БД
+  document.getElementById('log_with_new_btn').addEventListener("click", function(){
+         $.get( "change_name", { email, new_user_name } )
+            .done(function( data ) {
+                if (data['success'] == false){
+                    $('#registration').modal('show');
+                    getElementById$('error_with_db_update').classList.remove('d-none');
+                }
+                else {
+                    login( email, new_user_name);            
+                }
+            })
+    }); 
+  // возвращаемся к первому окну
+  document.getElementById('correct_btn').addEventListener("click", function(){
+    $('#email_exists').modal('hide');
+    $('#registration').modal('show');
+    })
+});
+
+
+function login(email, user_name){
+    $('#email_exists').modal('hide');
+    $('#registration').modal('hide');
+    localStorage.setItem('username', user_name);
+    localStorage.setItem('email', email);
+    document.getElementById('user_label').innerHTML = 'Hi, ' + user_name + '!';
+}
+
+</script>
 
   </body>
 </html>

@@ -6,7 +6,7 @@ html, body {
 body 
 {
 	background-color: #343D46;
-	height: 100vh; 
+	min-height: 400px; 
 }
 
 .navbar 
