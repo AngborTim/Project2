@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', message_form_resize);
 
 
 document.addEventListener('DOMContentLoaded',function(){
-  if (!localStorage.getItem('username') && !localStorage.getItem('email')){
+  alert('USERNAME: ' + localStorage.getItem('username')+ ' email: '+ localStorage.getItem('email') + ' user_id: ' + localStorage.getItem('user_id'))
+  if (!localStorage.getItem('username') || !localStorage.getItem('email') || !localStorage.getItem('user_id')){
     $('#registration').modal({ backdrop: 'static', keyboard: false })//localStorage.setItem('counter', 0);
     document.getElementById('username').value = '';
     document.getElementById('email').value = '';

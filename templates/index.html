@@ -156,6 +156,7 @@
 var email;
 var db_user_name;
 var new_user_name;
+var user_id;
 document.getElementById('registration_form').addEventListener('submit', function(event){
         event.preventDefault();
         new_user_name = document.getElementById('username').value;
@@ -190,9 +191,10 @@ function check_email(email, new_user_name){
                     document.getElementById('email').classList.remove('is-invalid');
                     document.getElementById('email').classList.add('is-valid');
                     db_user_name = data['username'];
+                    user_id = data['user_id'];
                     if (db_user_name == new_user_name) {
                         // если такая электропочта есть и имя совпадает с БД, входим
-                        login(email, new_user_name);               
+                        login(email, new_user_name, user_id);               
                     }
                     else {
                         // если нет - выводим запрос на дальнейшие действия
@@ -223,41 +225,44 @@ function check_email(email, new_user_name){
 
 
 document.addEventListener('DOMContentLoaded', function(){
-  // добавляем logout
-document.getElementById('logout').addEventListener("click", function(){
-    localStorage.setItem('username', '');
-    localStorage.setItem('email', '');
+    // добавляем logout
+    document.getElementById('logout').addEventListener("click", function(){
+        localStorage.removeItem('username');
+        localStorage.removeItem('email');
+        localStorage.removeItem('user_id');
     }); 
-  // заходим со старым именем
-  document.getElementById('log_with_old_btn').addEventListener("click", function(){
-        login( email, db_user_name);
+    // заходим со старым именем
+    document.getElementById('log_with_old_btn').addEventListener("click", function(){
+        login( email, db_user_name, user_id);
     }); 
-  // заходим с новым именем, обновляя его в БД
-  document.getElementById('log_with_new_btn').addEventListener("click", function(){
+    // заходим с новым именем, обновляя его в БД
+    document.getElementById('log_with_new_btn').addEventListener("click", function(){
          $.get( "change_name", { email, new_user_name } )
             .done(function( data ) {
                 if (data['success'] == false){
+                    $('#email_exists').modal('hide');
                     $('#registration').modal('show');
-                    getElementById$('error_with_db_update').classList.remove('d-none');
+                    document.getElementById('error_with_db_update').classList.remove('d-none');
                 }
                 else {
-                    login( email, new_user_name);            
+                    login( email, new_user_name, user_id);            
                 }
             })
     }); 
-  // возвращаемся к первому окну
-  document.getElementById('correct_btn').addEventListener("click", function(){
-    $('#email_exists').modal('hide');
-    $('#registration').modal('show');
+    // возвращаемся к первому окну
+    document.getElementById('correct_btn').addEventListener("click", function(){
+        $('#email_exists').modal('hide');
+        $('#registration').modal('show');
     })
 });
 
 
-function login(email, user_name){
+function login(email, user_name, user_id){
     $('#email_exists').modal('hide');
     $('#registration').modal('hide');
     localStorage.setItem('username', user_name);
     localStorage.setItem('email', email);
+    localStorage.setItem('user_id', user_id);
     document.getElementById('user_label').innerHTML = 'Hi, ' + user_name + '!';
 }
 

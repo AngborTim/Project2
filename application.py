@@ -3,9 +3,6 @@ import requests
 
 from flask import g, Flask, jsonify, flash, session, redirect, render_template, request, session
 from flask_session import Session
-from sqlalchemy import create_engine
-from sqlalchemy.orm import scoped_session, sessionmaker
-from functools import wraps
 from flask_socketio import SocketIO, emit
 
 
@@ -13,14 +10,13 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 
-# Check for environment variable
-if not os.getenv("DATABASE_URL"):
-    raise RuntimeError("DATABASE_URL is not set")
+class User:
+  def __init__(self, name, email):
+    self.name = name
+    self.email = email
 
-# Set up database
-engine = create_engine(os.getenv("DATABASE_URL"))
-db = scoped_session(sessionmaker(bind=engine))
-
+users_list = []
+users_list.append(User("Andrew", "survila@mail.ru"))
 
 @app.route("/")
 def index():
@@ -29,19 +25,17 @@ def index():
 
 @app.route("/check", methods=["GET"])
 def check():
-    name_test = db.execute("SELECT email, username FROM users WHERE email = :test_email",
-                           {"test_email":request.args.get('email')}).fetchone()
-    if name_test:
-        return jsonify({ "success": False, "username": name_test['username'], "email": name_test['email'] })
-    else:
-        return jsonify({ "success": True } )
+    for user in users_list:
+        if user.email == request.args.get('email'):
+            return jsonify({ "success": False, "username": user.name, "email": user.email, "user_id": users_list.index(user) })
+    return jsonify({ "success": True } ) 
+
 
 @app.route("/change_name", methods=["GET"])
 def change_name():
-    if db.execute("UPDATE users SET username = :new_name WHERE email = :email",
-                           {"new_name":request.args.get('new_user_name'),
-                            "email"   :request.args.get('email')}):
-	    db.commit()
-	    return jsonify({ "success": True, "username": request.args.get('new_user_name'), "email": request.args.get('email')})
-    else:
-        return jsonify({ "success": False } )
+    for user in users_list:
+        if user.email == request.args.get('email'):
+            user.name = request.args.get('new_user_name')
+            return jsonify({ "success": True, "username": user.name, "email": user.email, "user_id": users_list.index(user) })
+
+    return jsonify({ "success": False } )
