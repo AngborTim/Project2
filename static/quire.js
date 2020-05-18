@@ -2,6 +2,8 @@ var email;
 var db_user_name;
 var new_user_name;
 var user_id;
+var user_name;
+var channel_id;
 
 document.addEventListener('DOMContentLoaded', function(){
   channel_bg();
@@ -12,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function(){
   add_channel();
   add_new_channel_modal();
   add_channel_link_to_messages();
+  add_message();
 });
 
 
@@ -36,6 +39,7 @@ function add_channel(){
         $('#new_channel').modal('hide');
         const channel_name = document.getElementById('channel_name').value;
         const channel_owner = user_id;
+        alert('socket');
         socket.emit('add_channel', {'channel_name': channel_name, 'channel_owner': channel_owner});
         }
         else {
@@ -56,6 +60,9 @@ function add_channel(){
       frame.onclick = () => {
         get_messages(frame.dataset.channel_number);
       };
+
+      localStorage.setItem('channel_id', data.channel_id);
+
       var bold = document.createElement('strong');
       var cnl_name = document.createTextNode(data.channel_name);
       bold.appendChild(cnl_name);
@@ -81,59 +88,38 @@ function add_channel(){
     }
   });
 }
-
 
 function add_message(){
-    btn = document.getElementById('send_message');
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
     socket.on('connect', function() {
-      btn.onclick = function(){
+      document.getElementById("message_form").addEventListener("submit", function(event){
+        event.preventDefault();
         if (document.getElementById('message_text').value !='') {
-        const channel_name = document.getElementById('channel_name').value;
-        const channel_owner = user_id;
-        socket.emit('new message', {'channel_name': channel_name, 'channel_owner': channel_owner});
+          var message_text = document.getElementById('message_text').value;
+          // это назначаем на стороне сервера var timestamp
+          alert ('user_name: ' + localStorage.getItem('user_name') + ', user_id: ' + localStorage.getItem('user_id') + ', channel_id: ' + localStorage.getItem('channel_id') + ', message_text: ' + message_text);
+          socket.emit('add_message', {'channel_id': localStorage.getItem('channel_id'), 'message_text': message_text, "user_id": localStorage.getItem('user_id'), "user_name": localStorage.getItem('user_name') });
         }
-      }; 
+      });
     });
 
-    socket.on('new_channel', data => {
-    if (data.success === true){
-      var frame = document.createElement("span");
-      frame.setAttribute("class", "chanel_name p-1 mb-1 border rounded bg-light text-success");
-      frame.setAttribute("data", "owner");
-      frame.dataset.owner = data.channel_owner;
-      frame.setAttribute("data", "channel_number"); 
-      frame.dataset.channel_number = data.channel_id;
-      frame.onclick = () => {
-        get_messages(frame.dataset.channel_number);
-      };
-      var bold = document.createElement('strong');
-      var cnl_name = document.createTextNode(data.channel_name);
-      bold.appendChild(cnl_name);
-      frame.appendChild(bold);
-      var badge = document.createElement("span");
-      badge.setAttribute("class", "badge badge-primary badge-pill");
-      var cnl_mess = document.createTextNode(data.total_messages);
-      badge.appendChild(cnl_mess)
-      frame.appendChild(badge);
-      document.getElementById("channels_list").appendChild(frame);
-      frame.onmouseover = function() {
-        frame.classList.remove('bg-light');
-        frame.classList.add('bg-dark');
-      }
-      frame.onmouseout = function() {
-        frame.classList.remove('bg-dark');
-        frame.classList.add('bg-light');
-      }
+    socket.on('new_message', data => {
+    if (data.success != false){
+      // добавить изменение счетчика сообщений 
+      //messages_counter channel_id 
+      draw_message_block(data.owner_id, data.id, data.text, data.owner_name, data.timestamp)
     }
-    if (data.success === false) {
-      $('#duplicate').modal();
-      document.getElementById('duplicatename').innerHTML = data.channel_name;
+    else {
+        alert('NO nEW MESSAGE')
     }
   });
 }
 
+
 function get_messages(channel_id){
+  
+  localStorage.setItem('channel_id', channel_id);
+
   $.get( "get_messages", { channel_id } )
     .done(function( data ) {
       if (data['success'] == false){
@@ -145,34 +131,38 @@ function get_messages(channel_id){
       }
       else {
         document.getElementById('messages_list').innerHTML = "";
-        var message_span = document.createElement("span");
-        message_span.setAttribute("class", "message_block p-1 mb-1 border rounded d-flex w-100 justify-content-between");
-        message_span.setAttribute("data", "id");
-        message_span.dataset.id = data[0]["id"];
-        message_span.setAttribute("data", "owner_id");
-        message_span.dataset.owner_id =  data[0]["owner_id"];
-        var parag = document.createElement("p"); 
-        var bold = document.createElement('strong');
-        var owner_n = document.createTextNode(data[0]["owner_name"]);                   
-        var brr = document.createElement("br");
-        var msg_txt = document.createTextNode(data[0]["text"]);
-        bold.appendChild(owner_n);
-        parag.appendChild(bold);
-        parag.appendChild(brr);
-        parag.appendChild(msg_txt);
-        message_span.appendChild(parag);
-        sml = document.createElement("small");
-        sml.setAttribute("class", "text-danger");
-        var timestamp = document.createTextNode(data[0]["timestamp"]);
-        sml.appendChild(timestamp);
-        message_span.appendChild(sml);
-        messages_list.appendChild(message_span);
-        alert(data[0]["channel_id"]);
-        alert(data.length);        
+        alert(data.length);
+        for (var i = 0; i < data.length; i++){
+          draw_message_block(data[i]["owner_id"], data[i]["id"], data[i]["text"], data[i]["owner_name"], data[i]["timestamp"])
+        }
       }
   })
 }
 
+function draw_message_block(owner_id, id, text, owner_name, timestamp){
+  var message_span = document.createElement("span");
+  message_span.setAttribute("class", "message_block p-1 mb-1 border rounded d-flex w-100 justify-content-between");
+  message_span.setAttribute("data", "id");
+  message_span.dataset.id = id;
+  message_span.setAttribute("data", "owner_id");
+  message_span.dataset.owner_id =  owner_id;
+  var parag = document.createElement("p"); 
+  var bold = document.createElement('strong');
+  var owner_n = document.createTextNode(owner_name +':');                   
+  var brr = document.createElement("br");
+  var msg_txt = document.createTextNode(text);
+  bold.appendChild(owner_n);
+  parag.appendChild(bold);
+  parag.appendChild(brr);
+  parag.appendChild(msg_txt);
+  message_span.appendChild(parag);
+  sml = document.createElement("small");
+  sml.setAttribute("class", "text-danger");
+  var timestamp = document.createTextNode(timestamp);
+  sml.appendChild(timestamp);
+  message_span.appendChild(sml);
+  messages_list.appendChild(message_span);
+}
 
 function add_new_channel_modal(){
   document.getElementById('add_channel').addEventListener("click", function(){
@@ -344,6 +334,12 @@ function login(email, user_name, user_id){
     localStorage.setItem('username', user_name);
     localStorage.setItem('email', email);
     localStorage.setItem('user_id', user_id);
+    user_name = user_name;
+    user_id = user_id;
     document.getElementById('user_label').innerHTML = 'Hi, ' + user_name + '!';
     add_channel();
+    if (!localStorage.getItem('channel_id')){
+      channel_id =  localStorage.getItem('channel_id');
+      get_messages(channel_id);
+    }   
 }

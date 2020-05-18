@@ -1,6 +1,8 @@
 import os
 import requests
+import json
 
+from datetime import datetime
 from flask import g, Flask, jsonify, redirect, render_template, request
 from flask_session import Session
 from flask_socketio import SocketIO, emit
@@ -42,7 +44,7 @@ def index():
 def check():
     for user in users_list:
         if user.email == request.args.get('email'):
-            return jsonify({ "success": False, "username": user.name, "email": user.email, "user_id": users_list.index(user) })
+            return jsonify({ "success": False, "username": user.name, "email": user.email, "user_id": users_list.index(user) + 1 })
     return jsonify({ "success": True } ) 
 
 
@@ -89,20 +91,16 @@ def add_channel(data):
         emit("new_channel", {"success": False,'channel_name': channel_name}, broadcast=False)      
 
 
-теперь нужно создать сообщение
-@socketio.on("new message")
-def new_message(data):
-    channel_name = data["channel_name"]
-    channel_owner = data["channel_owner"]
-    total_messages = 0
-    for channel in channels_list:
-        duplicate = False
-        if channel.name == channel_name:
-            duplicate = True
-            break
-    if not duplicate:
-        channel_id = len(channel_list)+1
-        channel_list.append(Channel(channel_name, total_messages, channel_owner, channel_id))
-        emit("new_channel", {"success": True, 'channel_id': channel_id, 'channel_name': channel_name, 'channel_owner': channel_owner, 'total_messages': total_messages}, broadcast=True)
+@socketio.on("add_message")
+def add_message(data):
+    if data["message_text"] !="":
+        new_message = {'id' : len(messages_list) + 1, 'owner_id': data["user_id"], 'owner_name': data["user_name"], 'channel_id': int(data["channel_id"]), 'timestamp': str(datetime.now().strftime("%H:%M %D")), 'text': data["message_text"]}
+        messages_list.append(new_message)
+        for channel in channels_list:
+            if channel.id == int(data["channel_id"]):
+                channel.messages += channel.messages
+                chnlmsg = channel.messages
+                break
+        emit("new_message", {'messages_counter': chnlmsg, 'id' : len(messages_list), 'owner_id': data["user_id"], 'owner_name': data["user_name"], 'channel_id': data["channel_id"], 'timestamp': str(datetime.now().strftime("%H:%M %D")), 'text': data["message_text"]}, broadcast=True)
     else:
-        emit("new_channel", {"success": False,'channel_name': channel_name}, broadcast=False)      
+    	emit("new_message", {"success": False}, broadcast=False)
