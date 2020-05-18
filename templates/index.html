@@ -49,35 +49,45 @@
     
     <div id="right_block" class="d-md-flex" style="height: 90%;">
         <div id="channels_list" class="float-left overflow-auto p-2">
-            <span class="chanel_name p-1 mb-1 border rounded bg-light text-success">
-                <strong>CHANNEL name</strong>
-                <span class="badge badge-primary badge-pill">14</span>
+
+{%for channel in channels_list %}
+            <span class="chanel_name p-1 mb-1 border rounded bg-light text-success" data-channel_number="{{ channel.id }}" data-owner="{{ channel.owner }}">
+                <strong>{{ channel.name }}</strong>
+                <span class="badge badge-primary badge-pill">{{ channel.messages }}</span>
             </span>
-            <span class="chanel_name p-1 mb-1 border rounded bg-light text-success">
-                <strong>CHANNEL name</strong>
-                <span class="badge badge-primary badge-pill">1</span>
-            </span>
+{% endfor %}
+
         </div>
         <div class="float-right p-2">
-            <div id="messages_block" class="overflow-auto">    
-                <span class="message_block p-1 mb-1 border rounded d-flex w-100 justify-content-between">
-                    <p>Message..<br>dsfasfafvvdvdv</p>
-                    <small class="text-danger">3 days ago</small>
+            <div id="messages_list" class="overflow-auto">    
+{% if messages_list and channels_list %}
+    {%for message in messages_list %}
+                <span data-owner_id="{{ message["owner_id"] }}" data-id="{{ message["id"] }}" class="message_block p-1 mb-1 border rounded d-flex w-100 justify-content-between">
+                    <p><b>{{ message["owner_name"] }}:</b><br>{{ message["text"] }}</p>
+                    <small class="text-danger">{{ message["timestamp"] }}</small>
                 </span>
-                <span class="message_block p-1 mb-1 border rounded d-flex w-100 justify-content-between">
-                    <p>Message...........</p>
-                    <small class="text-danger">1 hour ago</small>
-                </span>
+    {% endfor %}
+{% else %}
+    {% if not channels_list %}
+        <span id="welcome">Hello!<br>There is no channel yet. Create one!</span>
+    {% else %}
+        <span id="welcome">Hello!<br>There is no message yet.</span>
+    {% endif %}
+{% endif %}
+
+
+
+
             </div>
 
             <div id="send_message_form" style="position: absolute;">
                 <form class="form">
                     <div class="form-row">
                         <div class="col-2">
-                            <button class="btn btn-outline-success m-1 w-100" type="submit">Send</button>
+                            <button id="send_message" class="btn btn-outline-success m-1 w-100" type="submit">Send</button>
                         </div>
                         <div class="col-10">
-                            <input class="form-control m-1" type="text" placeholder="Enter your message">
+                            <input id="message_text" class="form-control m-1" type="text" placeholder="Enter your message">
                         </div>
                     </div>
                 </form>
@@ -146,6 +156,57 @@
     </div>
   </div>
 </div>
+
+
+
+<div class="modal fade" id="new_channel" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content bg-secondary">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">New channel</h5>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="recipient-name" class="col-form-label">Channel name:</label>
+            <input type="text" class="form-control" id="channel_name" data-focus placeholder="Channel name">
+            <div id="email_error" class="invalid-feedback bg-light">
+                    Please enter channel name.
+                </div>
+                <div id="email_OK" class="valid-feedback bg-light">
+                    OK
+                </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id="create_chn_btn" type="button" class="btn btn-success">Create</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="duplicate" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content bg-secondary">
+      <div class="modal-header">
+        <h5 class="modal-title">Duplicate name</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="text-light text-center">Channel with name '<span class="font-weight-bold" id="duplicatename">CHANELLNAME</span>' already existss</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn btn-danger" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 
   </body>
 </html>

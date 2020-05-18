@@ -3,8 +3,6 @@ var db_user_name;
 var new_user_name;
 var user_id;
 
-var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
-
 document.addEventListener('DOMContentLoaded', function(){
   channel_bg();
   message_form_resize();
@@ -12,47 +10,189 @@ document.addEventListener('DOMContentLoaded', function(){
   submit_check();
   login_actions();
   add_channel();
+  add_new_channel_modal();
+  add_channel_link_to_messages();
 });
 
 
 window.addEventListener('resize', message_form_resize);
 
-function add_channel(){
-  
-  socket.on('connect', function() {
-    document.getElementById('add_channel').addEventListener("click", function(){
-      const channel_name = "New channel";
-      const channel_owner = "Andrew";
-      socket.emit('add channel', {'channel_name': channel_name, 'channel_owner': channel_owner});
-    }); 
-  });
 
-  socket.on('new_channel', data => {
-    var frame = document.createElement("span");
-    frame.setAttribute("class", "chanel_name p-1 mb-1 border rounded bg-light text-success");
-    var bold = document.createElement('strong');
-    var cnl_name = document.createTextNode(data.channel_name);
-    bold.appendChild(cnl_name);
-    frame.appendChild(bold);
-    
-    var badge = document.createElement("span");
-    badge.setAttribute("class", "badge badge-primary badge-pill");
-    var cnl_mess = document.createTextNode(data.total_messages);
-    badge.appendChild(cnl_mess)
-    frame.appendChild(badge);
-    document.getElementById("channels_list").appendChild(frame);
-    frame.onmouseover = function() {
-      frame.classList.remove('bg-light');
-      frame.classList.add('bg-dark');
+
+function add_channel_link_to_messages(){
+  document.querySelectorAll('.chanel_name').forEach(channel_btn => {
+    channel_btn.onclick = () => {
+      get_messages(channel_btn.dataset.channel_number);
+    };
+  });
+}
+
+function add_channel(){
+    btn = document.getElementById('create_chn_btn');
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+    socket.on('connect', function() {
+      btn.onclick = function(){
+        if (document.getElementById('channel_name').value !='') {
+        $('#new_channel').modal('hide');
+        const channel_name = document.getElementById('channel_name').value;
+        const channel_owner = user_id;
+        socket.emit('add_channel', {'channel_name': channel_name, 'channel_owner': channel_owner});
+        }
+        else {
+          document.getElementById('channel_name').classList.remove('is-valid');
+          document.getElementById('channel_name').classList.add('is-invalid');
+        }
+      }; 
+    });
+
+    socket.on('new_channel', data => {
+    if (data.success === true){
+      var frame = document.createElement("span");
+      frame.setAttribute("class", "chanel_name p-1 mb-1 border rounded bg-light text-success");
+      frame.setAttribute("data", "owner");
+      frame.dataset.owner = data.channel_owner;
+      frame.setAttribute("data", "channel_number"); 
+      frame.dataset.channel_number = data.channel_id;
+      frame.onclick = () => {
+        get_messages(frame.dataset.channel_number);
+      };
+      var bold = document.createElement('strong');
+      var cnl_name = document.createTextNode(data.channel_name);
+      bold.appendChild(cnl_name);
+      frame.appendChild(bold);
+      var badge = document.createElement("span");
+      badge.setAttribute("class", "badge badge-primary badge-pill");
+      var cnl_mess = document.createTextNode(data.total_messages);
+      badge.appendChild(cnl_mess)
+      frame.appendChild(badge);
+      document.getElementById("channels_list").appendChild(frame);
+      frame.onmouseover = function() {
+        frame.classList.remove('bg-light');
+        frame.classList.add('bg-dark');
+      }
+      frame.onmouseout = function() {
+        frame.classList.remove('bg-dark');
+        frame.classList.add('bg-light');
+      }
     }
-    frame.onmouseout = function() {
-      frame.classList.remove('bg-dark');
-      frame.classList.add('bg-light');
+    if (data.success === false) {
+      $('#duplicate').modal();
+      document.getElementById('duplicatename').innerHTML = data.channel_name;
     }
   });
 }
 
 
+function add_message(){
+    btn = document.getElementById('send_message');
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+    socket.on('connect', function() {
+      btn.onclick = function(){
+        if (document.getElementById('message_text').value !='') {
+        const channel_name = document.getElementById('channel_name').value;
+        const channel_owner = user_id;
+        socket.emit('new message', {'channel_name': channel_name, 'channel_owner': channel_owner});
+        }
+      }; 
+    });
+
+    socket.on('new_channel', data => {
+    if (data.success === true){
+      var frame = document.createElement("span");
+      frame.setAttribute("class", "chanel_name p-1 mb-1 border rounded bg-light text-success");
+      frame.setAttribute("data", "owner");
+      frame.dataset.owner = data.channel_owner;
+      frame.setAttribute("data", "channel_number"); 
+      frame.dataset.channel_number = data.channel_id;
+      frame.onclick = () => {
+        get_messages(frame.dataset.channel_number);
+      };
+      var bold = document.createElement('strong');
+      var cnl_name = document.createTextNode(data.channel_name);
+      bold.appendChild(cnl_name);
+      frame.appendChild(bold);
+      var badge = document.createElement("span");
+      badge.setAttribute("class", "badge badge-primary badge-pill");
+      var cnl_mess = document.createTextNode(data.total_messages);
+      badge.appendChild(cnl_mess)
+      frame.appendChild(badge);
+      document.getElementById("channels_list").appendChild(frame);
+      frame.onmouseover = function() {
+        frame.classList.remove('bg-light');
+        frame.classList.add('bg-dark');
+      }
+      frame.onmouseout = function() {
+        frame.classList.remove('bg-dark');
+        frame.classList.add('bg-light');
+      }
+    }
+    if (data.success === false) {
+      $('#duplicate').modal();
+      document.getElementById('duplicatename').innerHTML = data.channel_name;
+    }
+  });
+}
+
+function get_messages(channel_id){
+  $.get( "get_messages", { channel_id } )
+    .done(function( data ) {
+      if (data['success'] == false){
+        document.getElementById('messages_list').innerHTML = "";
+        var empty = document.createElement("span");
+        var nomessage = document.createTextNode("Hello! There is no message yet.");
+        empty.appendChild(nomessage);
+        document.getElementById('messages_list').appendChild(empty);
+      }
+      else {
+        document.getElementById('messages_list').innerHTML = "";
+        var message_span = document.createElement("span");
+        message_span.setAttribute("class", "message_block p-1 mb-1 border rounded d-flex w-100 justify-content-between");
+        message_span.setAttribute("data", "id");
+        message_span.dataset.id = data[0]["id"];
+        message_span.setAttribute("data", "owner_id");
+        message_span.dataset.owner_id =  data[0]["owner_id"];
+        var parag = document.createElement("p"); 
+        var bold = document.createElement('strong');
+        var owner_n = document.createTextNode(data[0]["owner_name"]);                   
+        var brr = document.createElement("br");
+        var msg_txt = document.createTextNode(data[0]["text"]);
+        bold.appendChild(owner_n);
+        parag.appendChild(bold);
+        parag.appendChild(brr);
+        parag.appendChild(msg_txt);
+        message_span.appendChild(parag);
+        sml = document.createElement("small");
+        sml.setAttribute("class", "text-danger");
+        var timestamp = document.createTextNode(data[0]["timestamp"]);
+        sml.appendChild(timestamp);
+        message_span.appendChild(sml);
+        messages_list.appendChild(message_span);
+        alert(data[0]["channel_id"]);
+        alert(data.length);        
+      }
+  })
+}
+
+
+function add_new_channel_modal(){
+  document.getElementById('add_channel').addEventListener("click", function(){
+    $('#new_channel').modal();
+    $('#new_channel').on('shown.bs.modal', function () {
+      $('#channel_name').trigger('focus')
+    })
+    document.getElementById('channel_name').value = '';
+    document.getElementById('channel_name').addEventListener('keydown', function(){
+      if (document.getElementById('channel_name').value != ''){
+      document.getElementById('channel_name').classList.remove('is-invalid');
+      document.getElementById('channel_name').classList.add('is-valid');
+      }
+      else {
+        document.getElementById('channel_name').classList.remove('is-valid');
+        document.getElementById('channel_name').classList.add('is-invalid');
+      }
+    });
+  });
+}
 
 function login_actions() {
   // добавляем logout
@@ -129,15 +269,16 @@ function message_form_resize(){
 
 
 function check_user_registration() {
-  alert('USERNAME: ' + localStorage.getItem('username')+ ' email: '+ localStorage.getItem('email') + ' user_id: ' + localStorage.getItem('user_id'))
   if (!localStorage.getItem('username') || !localStorage.getItem('email') || !localStorage.getItem('user_id')){
-    $('#registration').modal({ backdrop: 'static', keyboard: false })//localStorage.setItem('counter', 0);
+    $('#registration').modal({ backdrop: 'static', keyboard: false })
     document.getElementById('username').value = '';
     document.getElementById('email').value = '';
     document.getElementById('error_with_db_update').classList.add('d-none');
   }
   else {
     document.getElementById('user_label').innerHTML = 'Hi, ' + localStorage.getItem('username') + '!';
+    db_user_name = localStorage.getItem('username');
+    user_id = localStorage.getItem('user_id');
   } 
 }
 
@@ -204,4 +345,5 @@ function login(email, user_name, user_id){
     localStorage.setItem('email', email);
     localStorage.setItem('user_id', user_id);
     document.getElementById('user_label').innerHTML = 'Hi, ' + user_name + '!';
+    add_channel();
 }
