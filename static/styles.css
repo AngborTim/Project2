@@ -1,12 +1,14 @@
 html, body {
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; 
 }
 
 body 
 {
 	background-color: #343D46;
 	min-height: 400px; 
+
 }
 
 .navbar 
@@ -41,6 +43,11 @@ main
     overflow: hidden;	
 }
 
+/*#messages_list{
+    min-height: 70%;
+    height: 70%;
+}*/
+
 footer
 {
     min-height: 5%;
@@ -71,4 +78,8 @@ h5
 .chanel_name
 {
 	cursor: pointer;
+}
+
+.msg_count  {
+    float: right;
 }

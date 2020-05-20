@@ -6,6 +6,7 @@ var user_name;
 var channel_id;
 
 document.addEventListener('DOMContentLoaded', function(){
+  check_server_reset();
   channel_bg();
   message_form_resize();
   check_user_registration();
@@ -15,17 +16,81 @@ document.addEventListener('DOMContentLoaded', function(){
   add_new_channel_modal();
   add_channel_link_to_messages();
   add_message();
+  activate_last_channel();
 });
 
 
-window.addEventListener('resize', message_form_resize);
+function check_server_reset(){
+  // если сервер только что перезапущен, то никаких каналов еще нет
+  if (document.getElementById('server_reset').innerHTML == 'true'){
+    localStorage.removeItem('channel_id');
+    localStorage.removeItem('username');
+    localStorage.removeItem('email');
+    localStorage.removeItem('user_id');
+    alert('The server has been restarted.')
+  }
+}
+
+/*
+=========== CHANNELS BLOCK
+*/
+
+function activate_last_channel(){
+  if (localStorage.getItem('channel_id')){
+    channel_id = localStorage.getItem('channel_id');
+    get_messages(channel_id);
+  }
+  else {
+    //у пользователя канал не сохранен    
+  }
+}
 
 
+function active_channel(channelid){
+    if (document.querySelector('.active')){
+      old_chnl = document.querySelector('.active');
+      old_chnl.classList.remove('active');
+      old_chnl.classList.remove('text-light');
+      old_chnl.classList.remove('bg-secondary');
+      old_chnl.classList.add('text-success');
+      old_chnl.classList.add('bg-light');
+      add_bg_change(old_chnl);
+    }
+
+    chnl = document.querySelector('[data-channel_id = "' + channelid +'"]');
+    chnl.classList.add('active');
+    chnl.onmouseover ='';
+    chnl.onmouseout ='';
+    chnl.classList.remove('bg-light');
+    chnl.classList.remove('text-success');
+    chnl.classList.remove('bg-dark');
+    chnl.classList.add('bg-secondary');
+    chnl.classList.add('text-light');
+}
+
+
+function channel_bg() {
+  //изменение фона кнопок каналов при наведении мышки
+  document.querySelectorAll('.chanel_name').forEach(function(channel_block) {
+    add_bg_change(channel_block);
+  })
+}
+
+function add_bg_change(channel_block){
+    channel_block.onmouseover = function() {
+        channel_block.classList.remove('bg-light');
+        channel_block.classList.add('bg-dark');
+    }
+    channel_block.onmouseout = function() {
+        channel_block.classList.remove('bg-dark');
+        channel_block.classList.add('bg-light');
+    }
+}
 
 function add_channel_link_to_messages(){
   document.querySelectorAll('.chanel_name').forEach(channel_btn => {
     channel_btn.onclick = () => {
-      get_messages(channel_btn.dataset.channel_number);
+      get_messages(channel_btn.dataset.channel_id);
     };
   });
 }
@@ -39,7 +104,6 @@ function add_channel(){
         $('#new_channel').modal('hide');
         const channel_name = document.getElementById('channel_name').value;
         const channel_owner = user_id;
-        alert('socket');
         socket.emit('add_channel', {'channel_name': channel_name, 'channel_owner': channel_owner});
         }
         else {
@@ -52,35 +116,34 @@ function add_channel(){
     socket.on('new_channel', data => {
     if (data.success === true){
       var frame = document.createElement("span");
-      frame.setAttribute("class", "chanel_name p-1 mb-1 border rounded bg-light text-success");
+      // после добавления канала считаем его активным
+      localStorage.setItem('channel_id', data.channel_id);
+
+      frame.setAttribute("class", "active chanel_name p-1 mb-1 border rounded bg-light text-success");
       frame.setAttribute("data", "owner");
       frame.dataset.owner = data.channel_owner;
-      frame.setAttribute("data", "channel_number"); 
-      frame.dataset.channel_number = data.channel_id;
+      frame.setAttribute("data", "channel_id"); 
+      frame.dataset.channel_id = data.channel_id;
+      // получаем сообщения для установления ячейки свойств активного канала
       frame.onclick = () => {
-        get_messages(frame.dataset.channel_number);
+        get_messages(frame.dataset.channel_id);
       };
 
-      localStorage.setItem('channel_id', data.channel_id);
 
       var bold = document.createElement('strong');
       var cnl_name = document.createTextNode(data.channel_name);
       bold.appendChild(cnl_name);
       frame.appendChild(bold);
       var badge = document.createElement("span");
-      badge.setAttribute("class", "badge badge-primary badge-pill");
+      badge.setAttribute("class", "msg_count badge badge-primary badge-pill");
       var cnl_mess = document.createTextNode(data.total_messages);
       badge.appendChild(cnl_mess)
       frame.appendChild(badge);
       document.getElementById("channels_list").appendChild(frame);
-      frame.onmouseover = function() {
-        frame.classList.remove('bg-light');
-        frame.classList.add('bg-dark');
-      }
-      frame.onmouseout = function() {
-        frame.classList.remove('bg-dark');
-        frame.classList.add('bg-light');
-      }
+      add_bg_change(frame);
+      // разблокируем форму ввода сообщений
+      document.querySelector('fieldset').removeAttribute('disabled');
+      get_messages(data.channel_id);
     }
     if (data.success === false) {
       $('#duplicate').modal();
@@ -89,6 +152,31 @@ function add_channel(){
   });
 }
 
+function add_new_channel_modal(){
+  document.getElementById('add_channel').addEventListener("click", function(){
+    $('#new_channel').modal();
+    $('#new_channel').on('shown.bs.modal', function () {
+      $('#channel_name').trigger('focus')
+    })
+    document.getElementById('channel_name').value = '';
+    document.getElementById('channel_name').addEventListener('keydown', function(){
+      if (document.getElementById('channel_name').value != ''){
+      document.getElementById('channel_name').classList.remove('is-invalid');
+      document.getElementById('channel_name').classList.add('is-valid');
+      }
+      else {
+        document.getElementById('channel_name').classList.remove('is-valid');
+        document.getElementById('channel_name').classList.add('is-invalid');
+      }
+    });
+  });
+}
+
+
+/*
+=========== MESSAGES BLOCK
+*/
+
 function add_message(){
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
     socket.on('connect', function() {
@@ -96,18 +184,21 @@ function add_message(){
         event.preventDefault();
         if (document.getElementById('message_text').value !='') {
           var message_text = document.getElementById('message_text').value;
-          // это назначаем на стороне сервера var timestamp
-          alert ('user_name: ' + localStorage.getItem('user_name') + ', user_id: ' + localStorage.getItem('user_id') + ', channel_id: ' + localStorage.getItem('channel_id') + ', message_text: ' + message_text);
-          socket.emit('add_message', {'channel_id': localStorage.getItem('channel_id'), 'message_text': message_text, "user_id": localStorage.getItem('user_id'), "user_name": localStorage.getItem('user_name') });
+          document.getElementById('message_text').value = '';
+          // timestamp назначаем на стороне сервера 
+          socket.emit('add_message', {'channel_id': channel_id, 'message_text': message_text, "user_id": localStorage.getItem('user_id'), "user_name": localStorage.getItem('username') });
         }
       });
     });
 
     socket.on('new_message', data => {
     if (data.success != false){
-      // добавить изменение счетчика сообщений 
-      //messages_counter channel_id 
       draw_message_block(data.owner_id, data.id, data.text, data.owner_name, data.timestamp)
+      document.querySelector('[data-channel_id = "' + data.channel_id +'"]').querySelector('.msg_count').innerHTML = data.messages_counter;
+      if (data.redrow == true){
+        // если больше 100 сообщений, то перерисовываем все, так как первое уже удалено
+        get_messages(data.channel_id)
+      }
     }
     else {
         alert('NO nEW MESSAGE')
@@ -115,23 +206,29 @@ function add_message(){
   });
 }
 
-
-function get_messages(channel_id){
-  
-  localStorage.setItem('channel_id', channel_id);
-
+function get_messages(channelid){
+  // разблокируем форму ввода сообщений
+  document.querySelector('fieldset').removeAttribute('disabled');
+  // при загрузке сообщений устанавливаем текущий активный канал в storage
+  channel_id = channelid;
+  localStorage.setItem('channel_id', channelid);
+  document.querySelector('#channel_caption').innerHTML = 'CHANNEL "' + document.querySelector('[data-channel_id = "' + channelid +'"]').querySelector('strong').innerHTML +'" DETAILS';
   $.get( "get_messages", { channel_id } )
     .done(function( data ) {
+      active_channel(channel_id);
+      document.getElementById('messages_list').innerHTML = "";
       if (data['success'] == false){
-        document.getElementById('messages_list').innerHTML = "";
         var empty = document.createElement("span");
-        var nomessage = document.createTextNode("Hello! There is no message yet.");
-        empty.appendChild(nomessage);
+        empty.classList.add('no_msg');
+        var nomessage1 = document.createTextNode("Hello!");
+        var nomessage2 = document.createTextNode("There is no message yet.");
+        var br = document.createElement('br');
+        empty.appendChild(nomessage1);
+        empty.appendChild(br);
+        empty.appendChild(nomessage2);
         document.getElementById('messages_list').appendChild(empty);
       }
       else {
-        document.getElementById('messages_list').innerHTML = "";
-        alert(data.length);
         for (var i = 0; i < data.length; i++){
           draw_message_block(data[i]["owner_id"], data[i]["id"], data[i]["text"], data[i]["owner_name"], data[i]["timestamp"])
         }
@@ -140,6 +237,10 @@ function get_messages(channel_id){
 }
 
 function draw_message_block(owner_id, id, text, owner_name, timestamp){
+  // если остался текст заглушка от пустого канала -удаляем
+  if (document.querySelector('.no_msg')){
+    document.querySelector('.no_msg').remove();
+  }
   var message_span = document.createElement("span");
   message_span.setAttribute("class", "message_block p-1 mb-1 border rounded d-flex w-100 justify-content-between");
   message_span.setAttribute("data", "id");
@@ -164,25 +265,9 @@ function draw_message_block(owner_id, id, text, owner_name, timestamp){
   messages_list.appendChild(message_span);
 }
 
-function add_new_channel_modal(){
-  document.getElementById('add_channel').addEventListener("click", function(){
-    $('#new_channel').modal();
-    $('#new_channel').on('shown.bs.modal', function () {
-      $('#channel_name').trigger('focus')
-    })
-    document.getElementById('channel_name').value = '';
-    document.getElementById('channel_name').addEventListener('keydown', function(){
-      if (document.getElementById('channel_name').value != ''){
-      document.getElementById('channel_name').classList.remove('is-invalid');
-      document.getElementById('channel_name').classList.add('is-valid');
-      }
-      else {
-        document.getElementById('channel_name').classList.remove('is-valid');
-        document.getElementById('channel_name').classList.add('is-invalid');
-      }
-    });
-  });
-}
+/*
+=========== LOGIN BLOCK
+*/
 
 function login_actions() {
   // добавляем logout
@@ -190,6 +275,7 @@ function login_actions() {
     localStorage.removeItem('username');
     localStorage.removeItem('email');
     localStorage.removeItem('user_id');
+    localStorage.removeItem('channel_id')
   }); 
   
   // заходим со старым именем
@@ -229,32 +315,6 @@ function submit_check(){
       check_email(email, new_user_name);    
     }
   });  
-}
-
-
-function channel_bg() {
-  //изменение фона кнопок каналов при наведении мышки
-  document.querySelectorAll('.chanel_name').forEach(function(chanel_block) {
-    chanel_block.onmouseover = function() {
-      chanel_block.classList.remove('bg-light');
-      chanel_block.classList.add('bg-dark');
-    }
-    chanel_block.onmouseout = function() {
-      chanel_block.classList.remove('bg-dark');
-      chanel_block.classList.add('bg-light');
-    }
-  })
-}
-
-function message_form_resize(){
-  // - 10 потому что при появлении вертикальной прокрутки событие resize не вызывается, и появляется еще и горизонтальная полоса
-  // а это событие  работает только в firefox
-  //document.documentElement.addEventListener('overflow', function() {
-  // console.log('scollbar is visible');
-  //}); 
-  document.getElementById('send_message_form').style.width = document.querySelector('.message_block').clientWidth - 10 +'px';
-  // надо добавить проверку не выше ли левый угол нижней границы последнего элемента сообщений
-  document.getElementById('send_message_form').style.top = window.innerHeight - document.getElementById('send_message_form').clientHeight - document.getElementById('foo').clientHeight - 10 +'px';
 }
 
 
@@ -302,7 +362,7 @@ function check_email(email, new_user_name){
                         login(email, new_user_name, user_id);               
                     }
                     else {
-                        // если нет - выводим запрос на дальнейшие действия
+                        // если почта есть но имя другое - выводим запрос на дальнейшие действия
                         $('#registration').modal('hide');
                         $('#email_exists').modal({ backdrop: 'static', keyboard: false })
                         $('#email_exists').find('#email_block').text(email);
@@ -313,9 +373,11 @@ function check_email(email, new_user_name){
                     }
                     return true;
                 }
+                // если такой комбинации имени и электропочты нет
                 if (data['success'] == true){
                     document.getElementById('email').classList.remove('is-invalid');
                     document.getElementById('email').classList.add('is-valid');
+                    add_new_user(email, new_user_name);
                     return true;
                 }
         });
@@ -328,6 +390,14 @@ function check_email(email, new_user_name){
    }
 }
 
+
+function add_new_user(email, new_user_name){
+  $.get( "add_new_user", { email, new_user_name } )
+    .done(function( data ) {
+      login(data['email'], data['username'], data['user_id']);
+    });
+}
+
 function login(email, user_name, user_id){
     $('#email_exists').modal('hide');
     $('#registration').modal('hide');
@@ -337,9 +407,62 @@ function login(email, user_name, user_id){
     user_name = user_name;
     user_id = user_id;
     document.getElementById('user_label').innerHTML = 'Hi, ' + user_name + '!';
-    add_channel();
-    if (!localStorage.getItem('channel_id')){
+    // так и не понимаю, зачем я тут запускаю эту функцию...
+    //add_channel();
+    // если канал был сохранен, то загружаем его
+    if (localStorage.getItem('channel_id')){
       channel_id =  localStorage.getItem('channel_id');
       get_messages(channel_id);
-    }   
+    }
+    else{
+      
+      var span = document.createElement('span');
+      var br = document.createElement('br');
+      var h4 = document.createElement('h4');
+      h4.classList.add('text-warning');
+      var text1 = document.createTextNode('Hello!');
+      var text2 = document.createTextNode('For beginning choose a channel at the left column, or create one if there is no channel yet.');
+      h4.appendChild(text1);
+      h4.appendChild(br);
+      h4.appendChild(text2);
+      span.appendChild(h4);
+      var ml = document.getElementById('messages_list');
+      ml.innerHTML = '';
+      ml.appendChild(span);
+    }
+}
+
+/*
+========== PAGE FUNCTIONS
+*/
+
+window.addEventListener('resize', message_form_resize);
+/*
+тут целый эпос, так как напрямую нельзя использовать scroll 
+пришлось городить временную фнкцию, запускаемую через задержку и т.п.
+*/
+
+var last_known_scroll_position = 0;
+
+function move(){
+  document.getElementById('send_message_form').style.top = window.innerHeight - document.getElementById('send_message_form').clientHeight - document.getElementById('foo').clientHeight - 10 + last_known_scroll_position + 'px';
+}
+
+window.addEventListener('scroll', function () {
+  last_known_scroll_position = window.scrollY;
+  window.setTimeout(move, 100);
+});
+
+//=========================================================
+
+
+function message_form_resize(){
+  // - 10 потому что при появлении вертикальной прокрутки событие resize не вызывается, и появляется еще и горизонтальная полоса
+  // а это событие  работает только в firefox
+  //document.documentElement.addEventListener('overflow', function() {
+  // console.log('scollbar is visible');
+  //}); 
+  document.getElementById('send_message_form').style.width = document.querySelector('#messages_list').clientWidth - 10 +'px';
+  // надо добавить проверку не выше ли левый угол нижней границы последнего элемента сообщений
+  document.getElementById('send_message_form').style.top = window.innerHeight - document.getElementById('send_message_form').clientHeight - document.getElementById('foo').clientHeight - 10 +'px';
 }
