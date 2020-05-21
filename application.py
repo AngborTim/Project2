@@ -43,6 +43,12 @@ def index():
         return render_template("index.html", channels_list = channels_list, reset_status = 'false')
     
 
+@app.route("/index3")
+def index3():
+    return render_template("index3.html")
+
+
+
 
 @app.route("/check", methods=["GET"])
 def check():
@@ -56,16 +62,16 @@ def check():
 def change_name():
     for user in users_list:
         if user.email == request.args.get('email'):
-            user.name = request.args.get('new_user_name')
-            return jsonify({ "success": True, "username": user.name, "email": user.email, "user_id": users_list.index(user) })
+            user.name = request.args.get('username')
+            return jsonify({ "success": True, "username": user.name, "email": user.email, "userid": users_list.index(user) })
 
     return jsonify({ "success": False } )
 
 @app.route("/add_new_user", methods=["GET"])
 def add_new_user():
-    newuser = User(request.args.get('new_user_name'), request.args.get('email'))
+    newuser = User(request.args.get('username'), request.args.get('email'))
     users_list.append(newuser)
-    return jsonify({ "username": newuser.name, "email": newuser.email, "user_id": users_list.index(newuser)})
+    return jsonify({ "username": newuser.name, "email": newuser.email, "userid": len(users_list)-1})
 
 
 @app.route("/get_messages", methods=["GET"])
@@ -117,8 +123,8 @@ def add_message(data):
         for m in messages_list:
             if m["channel_id"] == int(data["channel_id"]):
                 mesgs.append(m)
-        # если сообщений в канале больше чем 5
-        if len(mesgs) == 5:
+        # если сообщений в канале больше чем 100
+        if len(mesgs) == 100:
             # удаляем из общего списка первое сообщение из этого канала
             messages_list.remove(mesgs[0])
             redrow = True
@@ -134,7 +140,6 @@ def add_message(data):
                     channel.messages += 1
                 chnlmsg = channel.messages
                 break
-        print(f'chnlmsg {chnlmsg} redraw = {redrow}')
         emit("new_message", {'messages_counter': chnlmsg, 'redrow': redrow, 'id' : len(messages_list), 'owner_id': data["user_id"], 'owner_name': data["user_name"], 'channel_id': data["channel_id"], 'timestamp': str(datetime.now().strftime("%H:%M %D")), 'text': data["message_text"]}, broadcast=True)
     else:
     	emit("new_message", {"success": False}, broadcast=False)

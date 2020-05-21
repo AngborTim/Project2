@@ -1,6 +1,4 @@
 var email;
-var db_user_name;
-var new_user_name;
 var user_id;
 var user_name;
 var channel_id;
@@ -19,12 +17,11 @@ document.addEventListener('DOMContentLoaded', function(){
   activate_last_channel();
 });
 
-
 function check_server_reset(){
   // если сервер только что перезапущен, то никаких каналов еще нет
   if (document.getElementById('server_reset').innerHTML == 'true'){
     localStorage.removeItem('channel_id');
-    localStorage.removeItem('username');
+    localStorage.removeItem('user_name');
     localStorage.removeItem('email');
     localStorage.removeItem('user_id');
     alert('The server has been restarted.')
@@ -41,7 +38,7 @@ function activate_last_channel(){
     get_messages(channel_id);
   }
   else {
-    //у пользователя канал не сохранен    
+    alert('NO last channel');   
   }
 }
 
@@ -116,10 +113,8 @@ function add_channel(){
     socket.on('new_channel', data => {
     if (data.success === true){
       var frame = document.createElement("span");
-      // после добавления канала считаем его активным
-      localStorage.setItem('channel_id', data.channel_id);
-
-      frame.setAttribute("class", "active chanel_name p-1 mb-1 border rounded bg-light text-success");
+      
+      frame.setAttribute("class", "chanel_name p-1 mb-1 border rounded bg-light text-success");
       frame.setAttribute("data", "owner");
       frame.dataset.owner = data.channel_owner;
       frame.setAttribute("data", "channel_id"); 
@@ -141,9 +136,14 @@ function add_channel(){
       frame.appendChild(badge);
       document.getElementById("channels_list").appendChild(frame);
       add_bg_change(frame);
-      // разблокируем форму ввода сообщений
-      document.querySelector('fieldset').removeAttribute('disabled');
-      get_messages(data.channel_id);
+      if (data.channel_owner == user_id) {
+      // если канал пренадлежит текущему пользователю, то устанавливаем флаг, чтобы сделать канал активным
+        localStorage.setItem('channel_id', data.channel_id);
+        // разблокируем форму ввода сообщений
+        document.querySelector('fieldset').removeAttribute('disabled');
+        frame.classList.add('active');
+        get_messages(data.channel_id);
+      }
     }
     if (data.success === false) {
       $('#duplicate').modal();
@@ -186,14 +186,17 @@ function add_message(){
           var message_text = document.getElementById('message_text').value;
           document.getElementById('message_text').value = '';
           // timestamp назначаем на стороне сервера 
-          socket.emit('add_message', {'channel_id': channel_id, 'message_text': message_text, "user_id": localStorage.getItem('user_id'), "user_name": localStorage.getItem('username') });
+          socket.emit('add_message', {'channel_id': channel_id, 'message_text': message_text, "user_id": localStorage.getItem('user_id'), "user_name": localStorage.getItem('user_name') });
         }
       });
     });
 
     socket.on('new_message', data => {
     if (data.success != false){
-      draw_message_block(data.owner_id, data.id, data.text, data.owner_name, data.timestamp)
+      // если сообщение пренадлежит открытому каналу, то добавляем на экран
+      if (data.owner_id == user_id){
+        draw_message_block(data.owner_id, data.id, data.text, data.owner_name, data.timestamp);
+      }
       document.querySelector('[data-channel_id = "' + data.channel_id +'"]').querySelector('.msg_count').innerHTML = data.messages_counter;
       if (data.redrow == true){
         // если больше 100 сообщений, то перерисовываем все, так как первое уже удалено
@@ -243,10 +246,8 @@ function draw_message_block(owner_id, id, text, owner_name, timestamp){
   }
   var message_span = document.createElement("span");
   message_span.setAttribute("class", "message_block p-1 mb-1 border rounded d-flex w-100 justify-content-between");
-  message_span.setAttribute("data", "id");
-  message_span.dataset.id = id;
-  message_span.setAttribute("data", "owner_id");
-  message_span.dataset.owner_id =  owner_id;
+  message_span.setAttribute("data-id", id);
+  message_span.setAttribute("data-owner_id", owner_id);
   var parag = document.createElement("p"); 
   var bold = document.createElement('strong');
   var owner_n = document.createTextNode(owner_name +':');                   
@@ -272,7 +273,7 @@ function draw_message_block(owner_id, id, text, owner_name, timestamp){
 function login_actions() {
   // добавляем logout
   document.getElementById('logout').addEventListener("click", function(){
-    localStorage.removeItem('username');
+    localStorage.removeItem('user_name');
     localStorage.removeItem('email');
     localStorage.removeItem('user_id');
     localStorage.removeItem('channel_id')
@@ -280,12 +281,12 @@ function login_actions() {
   
   // заходим со старым именем
   document.getElementById('log_with_old_btn').addEventListener("click", function(){
-    login( email, db_user_name, user_id);
+    login( email, user_name, user_id);
     }); 
   
   // заходим с новым именем, обновляя его в БД
   document.getElementById('log_with_new_btn').addEventListener("click", function(){
-    $.get( "change_name", { email, new_user_name } )
+    $.get( "change_name", { email, username } )
       .done(function( data ) {
         if (data['success'] == false){
           $('#email_exists').modal('hide');
@@ -293,7 +294,7 @@ function login_actions() {
           document.getElementById('error_with_db_update').classList.remove('d-none');
         }
         else {
-          login( email, new_user_name, user_id);            
+          login( email, data['username'], data['userid']);            
         }
       })
     }); 
@@ -309,31 +310,30 @@ function login_actions() {
 function submit_check(){
   document.getElementById('registration_form').addEventListener('submit', function(event){
     event.preventDefault();
-    new_user_name = document.getElementById('username').value;
     email = document.getElementById('email').value;
-    if (check_name(new_user_name)) {
-      check_email(email, new_user_name);    
+    if (check_name(document.getElementById('username').value)) {
+      check_email(email, document.getElementById('username').value);    
     }
   });  
 }
 
 
 function check_user_registration() {
-  if (!localStorage.getItem('username') || !localStorage.getItem('email') || !localStorage.getItem('user_id')){
+  if (!localStorage.getItem('user_name') || !localStorage.getItem('email') || !localStorage.getItem('user_id')){
     $('#registration').modal({ backdrop: 'static', keyboard: false })
     document.getElementById('username').value = '';
     document.getElementById('email').value = '';
     document.getElementById('error_with_db_update').classList.add('d-none');
   }
   else {
-    document.getElementById('user_label').innerHTML = 'Hi, ' + localStorage.getItem('username') + '!';
-    db_user_name = localStorage.getItem('username');
+    document.getElementById('user_label').innerHTML = 'Hi, ' + localStorage.getItem('user_name') + '!';
+    user_name = localStorage.getItem('user_name');
     user_id = localStorage.getItem('user_id');
   } 
 }
 
-function check_name(new_user_name){
-    if (new_user_name === "") {
+function check_name(username){
+    if (username === "") {
         document.getElementById('username').classList.remove('is-valid');
         document.getElementById('username').classList.add('is-invalid');
         return false;
@@ -346,7 +346,7 @@ function check_name(new_user_name){
 }
 
 
-function check_email(email, new_user_name){
+function check_email(email, username){
     var pattern = /^\b[A-Z0-9._%-]+@[A-Z0-9.-]+\.[A-Z]{2,4}\b$/i;
     if (email != "" && pattern.test(email)){
         $.get( "check", { email } )
@@ -355,21 +355,19 @@ function check_email(email, new_user_name){
                 if (data['success'] == false){
                     document.getElementById('email').classList.remove('is-invalid');
                     document.getElementById('email').classList.add('is-valid');
-                    db_user_name = data['username'];
-                    user_id = data['user_id'];
-                    if (db_user_name == new_user_name) {
+                    if (data['username'] == username) {
                         // если такая электропочта есть и имя совпадает с БД, входим
-                        login(email, new_user_name, user_id);               
+                        login(email, username, data['user_id']);               
                     }
                     else {
                         // если почта есть но имя другое - выводим запрос на дальнейшие действия
                         $('#registration').modal('hide');
                         $('#email_exists').modal({ backdrop: 'static', keyboard: false })
                         $('#email_exists').find('#email_block').text(email);
-                        $('#email_exists').find('#name_block1').text(db_user_name);
-                        $('#email_exists').find('#name_block2').text(db_user_name);
-                        $('#email_exists').find('#new_name_block1').text(' \''+new_user_name+'\'');
-                        $('#email_exists').find('#new_name_block2').text(new_user_name);
+                        $('#email_exists').find('#name_block1').text(data['username']);
+                        $('#email_exists').find('#name_block2').text(data['username']);
+                        $('#email_exists').find('#new_name_block1').text(' \''+ username+'\'');
+                        $('#email_exists').find('#new_name_block2').text(username);
                     }
                     return true;
                 }
@@ -377,7 +375,7 @@ function check_email(email, new_user_name){
                 if (data['success'] == true){
                     document.getElementById('email').classList.remove('is-invalid');
                     document.getElementById('email').classList.add('is-valid');
-                    add_new_user(email, new_user_name);
+                    add_new_user(email, username);
                     return true;
                 }
         });
@@ -391,24 +389,22 @@ function check_email(email, new_user_name){
 }
 
 
-function add_new_user(email, new_user_name){
-  $.get( "add_new_user", { email, new_user_name } )
+function add_new_user(email, username){
+  $.get( "add_new_user", { email, username } )
     .done(function( data ) {
-      login(data['email'], data['username'], data['user_id']);
+      login(data['email'], data['username'], data['userid']);
     });
 }
 
-function login(email, user_name, user_id){
+function login(email, username, userid){
     $('#email_exists').modal('hide');
     $('#registration').modal('hide');
-    localStorage.setItem('username', user_name);
+    localStorage.setItem('user_name', username);
     localStorage.setItem('email', email);
-    localStorage.setItem('user_id', user_id);
-    user_name = user_name;
-    user_id = user_id;
+    localStorage.setItem('user_id', userid);
+    user_name = username;
+    user_id = userid;
     document.getElementById('user_label').innerHTML = 'Hi, ' + user_name + '!';
-    // так и не понимаю, зачем я тут запускаю эту функцию...
-    //add_channel();
     // если канал был сохранен, то загружаем его
     if (localStorage.getItem('channel_id')){
       channel_id =  localStorage.getItem('channel_id');
@@ -462,6 +458,8 @@ function message_form_resize(){
   //document.documentElement.addEventListener('overflow', function() {
   // console.log('scollbar is visible');
   //}); 
+
+
   document.getElementById('send_message_form').style.width = document.querySelector('#messages_list').clientWidth - 10 +'px';
   // надо добавить проверку не выше ли левый угол нижней границы последнего элемента сообщений
   document.getElementById('send_message_form').style.top = window.innerHeight - document.getElementById('send_message_form').clientHeight - document.getElementById('foo').clientHeight - 10 +'px';
