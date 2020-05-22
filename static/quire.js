@@ -44,7 +44,7 @@ function activate_last_channel(){
 
 
 function active_channel(channelid){
-    if (document.querySelector('.active')){
+    document.querySelectorAll('.active').forEach(function(old_chnl){
       old_chnl = document.querySelector('.active');
       old_chnl.classList.remove('active');
       old_chnl.classList.remove('text-light');
@@ -52,17 +52,18 @@ function active_channel(channelid){
       old_chnl.classList.add('text-success');
       old_chnl.classList.add('bg-light');
       add_bg_change(old_chnl);
-    }
+    })
 
-    chnl = document.querySelector('[data-channel_id = "' + channelid +'"]');
-    chnl.classList.add('active');
-    chnl.onmouseover ='';
-    chnl.onmouseout ='';
-    chnl.classList.remove('bg-light');
-    chnl.classList.remove('text-success');
-    chnl.classList.remove('bg-dark');
-    chnl.classList.add('bg-secondary');
-    chnl.classList.add('text-light');
+    document.querySelectorAll('[data-channel_id = "' + channelid +'"]').forEach(function(chnl){
+      chnl.classList.add('active');
+      chnl.onmouseover ='';
+      chnl.onmouseout ='';
+      chnl.classList.remove('bg-light');
+      chnl.classList.remove('text-success');
+      chnl.classList.remove('bg-dark');
+      chnl.classList.add('bg-secondary');
+      chnl.classList.add('text-light');
+    })
 }
 
 
@@ -114,7 +115,7 @@ function add_channel(){
     if (data.success === true){
       var frame = document.createElement("span");
       
-      frame.setAttribute("class", "chanel_name p-1 mb-1 border rounded bg-light text-success");
+      frame.setAttribute("class", "d-block chanel_name p-1 mb-1 border rounded bg-light text-success");
       frame.setAttribute("data", "owner");
       frame.dataset.owner = data.channel_owner;
       frame.setAttribute("data", "channel_id"); 
@@ -134,14 +135,19 @@ function add_channel(){
       var cnl_mess = document.createTextNode(data.total_messages);
       badge.appendChild(cnl_mess)
       frame.appendChild(badge);
+      // клонируем созданный блок, если использовать его же два раза, получается лажа :/
+      var frame_menu = frame.cloneNode(true)
       document.getElementById("channels_list").appendChild(frame);
+      document.getElementById("dropdown_menu").appendChild(frame_menu);
       add_bg_change(frame);
+      add_bg_change(frame_menu);
       if (data.channel_owner == user_id) {
       // если канал пренадлежит текущему пользователю, то устанавливаем флаг, чтобы сделать канал активным
         localStorage.setItem('channel_id', data.channel_id);
         // разблокируем форму ввода сообщений
         document.querySelector('fieldset').removeAttribute('disabled');
         frame.classList.add('active');
+        frame_menu.classList.add('active');
         get_messages(data.channel_id);
       }
     }
@@ -153,21 +159,23 @@ function add_channel(){
 }
 
 function add_new_channel_modal(){
-  document.getElementById('add_channel').addEventListener("click", function(){
-    $('#new_channel').modal();
-    $('#new_channel').on('shown.bs.modal', function () {
-      $('#channel_name').trigger('focus')
-    })
-    document.getElementById('channel_name').value = '';
-    document.getElementById('channel_name').addEventListener('keydown', function(){
-      if (document.getElementById('channel_name').value != ''){
-      document.getElementById('channel_name').classList.remove('is-invalid');
-      document.getElementById('channel_name').classList.add('is-valid');
-      }
-      else {
-        document.getElementById('channel_name').classList.remove('is-valid');
-        document.getElementById('channel_name').classList.add('is-invalid');
-      }
+  document.querySelectorAll('.add_channel').forEach(function(add_channel_btn){
+    add_channel_btn.addEventListener("click", function(){
+      $('#new_channel').modal();
+      $('#new_channel').on('shown.bs.modal', function () {
+        $('#channel_name').trigger('focus')
+      })
+      document.getElementById('channel_name').value = '';
+      document.getElementById('channel_name').addEventListener('keydown', function(){
+        if (document.getElementById('channel_name').value != ''){
+          document.getElementById('channel_name').classList.remove('is-invalid');
+          document.getElementById('channel_name').classList.add('is-valid');
+        }
+        else {
+          document.getElementById('channel_name').classList.remove('is-valid');
+          document.getElementById('channel_name').classList.add('is-invalid');
+        }
+      });
     });
   });
 }
@@ -222,7 +230,7 @@ function get_messages(channelid){
       document.getElementById('messages_list').innerHTML = "";
       if (data['success'] == false){
         var empty = document.createElement("span");
-        empty.classList.add('no_msg');
+        empty.setAttribute("class", "no_msg");
         var nomessage1 = document.createTextNode("Hello!");
         var nomessage2 = document.createTextNode("There is no message yet.");
         var br = document.createElement('br');
@@ -433,10 +441,12 @@ function login(email, username, userid){
 */
 
 window.addEventListener('resize', message_form_resize);
+
+
 /*
 тут целый эпос, так как напрямую нельзя использовать scroll 
 пришлось городить временную фнкцию, запускаемую через задержку и т.п.
-*/
+
 
 var last_known_scroll_position = 0;
 
@@ -447,7 +457,7 @@ function move(){
 window.addEventListener('scroll', function () {
   last_known_scroll_position = window.scrollY;
   window.setTimeout(move, 100);
-});
+});*/
 
 //=========================================================
 
@@ -462,5 +472,5 @@ function message_form_resize(){
 
   document.getElementById('send_message_form').style.width = document.querySelector('#messages_list').clientWidth - 10 +'px';
   // надо добавить проверку не выше ли левый угол нижней границы последнего элемента сообщений
-  document.getElementById('send_message_form').style.top = window.innerHeight - document.getElementById('send_message_form').clientHeight - document.getElementById('foo').clientHeight - 10 +'px';
+  //document.getElementById('send_message_form').style.top = window.innerHeight - document.getElementById('send_message_form').clientHeight - document.getElementById('foo').clientHeight - 10 +'px';
 }

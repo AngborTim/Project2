@@ -48,8 +48,6 @@ def index3():
     return render_template("index3.html")
 
 
-
-
 @app.route("/check", methods=["GET"])
 def check():
     for user in users_list:
