@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', function(){
   submit_check();
   login_actions();
   add_channel();
+  del_message();
   add_new_channel_modal();
   add_channel_link_to_messages();
   add_message();
@@ -102,7 +103,7 @@ function add_channel(){
         $('#new_channel').modal('hide');
         const channel_name = document.getElementById('channel_name').value;
         const channel_owner = user_id;
-        socket.emit('add_channel', {'channel_name': channel_name, 'channel_owner': channel_owner});
+        socket.emit('add_channel', {'channel_name': encodeURI(channel_name), 'channel_owner': channel_owner});
         }
         else {
           document.getElementById('channel_name').classList.remove('is-valid');
@@ -185,6 +186,30 @@ function add_new_channel_modal(){
 =========== MESSAGES BLOCK
 */
 
+
+function del_message(){
+    del_btn = document.getElementById('delete_mgs');
+    var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+    socket.on('connect', function() {
+      delete_mgs.onclick = function(){
+        $('#delete_msg').modal('hide');
+        alert(document.getElementById('msg_id_for_del').value)
+        socket.emit('del_message', {'channel_id': document.getElementById('channel_id_for_del').value, 'message_id': document.getElementById('msg_id_for_del').value});
+      }; 
+    });
+
+    socket.on('message_del', data => {
+    if (data.success === true){
+      alert('OK')
+     }
+    if (data.success === false) {
+      alert('troubles')
+    }
+  });
+}
+
+
+
 function add_message(){
     var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
     socket.on('connect', function() {
@@ -194,7 +219,7 @@ function add_message(){
           var message_text = document.getElementById('message_text').value;
           document.getElementById('message_text').value = '';
           // timestamp назначаем на стороне сервера 
-          socket.emit('add_message', {'channel_id': channel_id, 'message_text': message_text, "user_id": localStorage.getItem('user_id'), "user_name": localStorage.getItem('user_name') });
+          socket.emit('add_message', {'channel_id': channel_id, 'message_text': encodeURI(message_text), "user_id": localStorage.getItem('user_id'), "user_name": localStorage.getItem('user_name') });
         }
       });
     });
@@ -241,13 +266,13 @@ function get_messages(channelid){
       }
       else {
         for (var i = 0; i < data.length; i++){
-          draw_message_block(data[i]["owner_id"], data[i]["id"], data[i]["text"], data[i]["owner_name"], data[i]["timestamp"])
+          draw_message_block(channelid, data[i]["owner_id"], data[i]["id"], data[i]["text"], data[i]["owner_name"], data[i]["timestamp"])
         }
       }
   })
 }
 
-function draw_message_block(owner_id, id, text, owner_name, timestamp){
+function draw_message_block(channelid, owner_id, id, text, owner_name, timestamp){
   // если остался текст заглушка от пустого канала -удаляем
   if (document.querySelector('.no_msg')){
     document.querySelector('.no_msg').remove();
@@ -267,9 +292,30 @@ function draw_message_block(owner_id, id, text, owner_name, timestamp){
   parag.appendChild(msg_txt);
   message_span.appendChild(parag);
   sml = document.createElement("small");
-  sml.setAttribute("class", "text-danger");
+  sml.setAttribute("class", "text-danger text-center");
+  sml.setAttribute("title", "Delete your message");
   var timestamp = document.createTextNode(timestamp);
   sml.appendChild(timestamp);
+  if (owner_id == user_id){
+    var d_span = document.createElement("button");
+    d_span.setAttribute("class", "m_del badge badge-secondary");
+    d_span.setAttribute("data-id", id);
+    d_span.setAttribute("data-channel_id", channelid);    
+    d_span.onclick = () => {
+      var mod = $('#delete_msg').modal();
+      mod.find('#msg_id_for_del').val(d_span.getAttribute("data-id"))
+      mod.find('#channel_id_for_del').val(d_span.getAttribute("data-channel_id"))
+    }
+    var deletion = document.createElement("IMG");
+    deletion.setAttribute("src", "static/delete.svg");
+    deletion.setAttribute("width", "40");
+    deletion.setAttribute("height", "40");
+    deletion.setAttribute("alt", "Delete your message");
+    d_span.appendChild(deletion);
+    sml.appendChild(brr);
+    sml.appendChild(d_span);
+  }
+  
   message_span.appendChild(sml);
   messages_list.appendChild(message_span);
 }

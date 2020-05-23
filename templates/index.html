@@ -120,6 +120,32 @@
 
 </div>
 
+<!-- ================ MODALS BLOCK ==================== -->
+
+
+
+<div class="modal fade" id="delete_msg" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content bg-secondary">
+      <div class="modal-header">
+        <h5 class="modal-title">Deleting your message</h5>
+      </div>
+      <div class="modal-body">
+        <form>
+          <input type="hidden" id="msg_id_for_del">
+          <input type="hidden" id="channel_id_for_del">
+        </form>
+        <p>Do you want to delete your message?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button id="delete_mgs" type="button" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 <div class="modal" id="registration" tabindex="-1" role="dialog">
   <div class="modal-dialog modal-dialog-centered" role="document">
     <div id ="reg_body" class="modal-content bg-secondary">
@@ -183,7 +209,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content bg-secondary">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">New channel</h5>
+        <h5 class="modal-title">New channel</h5>
       </div>
       <div class="modal-body">
         <form>

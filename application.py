@@ -7,6 +7,7 @@ from flask import g, Flask, jsonify, redirect, render_template, request
 from flask_session import Session
 from flask_socketio import SocketIO, emit
 
+from urllib.parse import unquote
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
@@ -90,7 +91,7 @@ def get_messages():
 
 @socketio.on("add_channel")
 def add_channel(data):
-    channel_name = data["channel_name"]
+    channel_name = unquote(data["channel_name"])
     channel_owner = data["channel_owner"]
     total_messages = 0
     if len(channels_list) == 0:
@@ -109,6 +110,20 @@ def add_channel(data):
             emit("new_channel", {"success": True, 'channel_id': channel_id, 'channel_name': channel_name, 'channel_owner': channel_owner, 'total_messages': total_messages}, broadcast=True)
         else:
             emit("new_channel", {"success": False,'channel_name': channel_name}, broadcast=False)      
+
+
+@socketio.on("del_message")
+def del_message(data):
+    if data["message_id"] !="":
+        for m in messages_list:
+            if m["id"] == int(data["message_id"]):
+                for channel in channels_list:
+                    if channel.id == int(data["channel_id"]):
+                        channel.messages -= 1
+                messages_list.remove(m)
+                emit("message_del", {"success": True}, broadcast=False)
+            else:
+                emit("message_del", {"success": False}, broadcast=False)
 
 
 @socketio.on("add_message")
@@ -130,7 +145,7 @@ def add_message(data):
             msg_id = 0
         else:
             msg_id = messages_list[-1]["id"] + 1
-        new_message = {'id' : msg_id, 'owner_id': data["user_id"], 'owner_name': data["user_name"], 'channel_id': int(data["channel_id"]), 'timestamp': str(datetime.now().strftime("%H:%M %D")), 'text': data["message_text"]}
+        new_message = {'id' : msg_id, 'owner_id': data["user_id"], 'owner_name': data["user_name"], 'channel_id': int(data["channel_id"]), 'timestamp': str(datetime.now().strftime("%H:%M %D")), 'text': unquote(data["message_text"])}
         messages_list.append(new_message)
         for channel in channels_list:
             if channel.id == int(data["channel_id"]):
@@ -138,6 +153,6 @@ def add_message(data):
                     channel.messages += 1
                 chnlmsg = channel.messages
                 break
-        emit("new_message", {'messages_counter': chnlmsg, 'redrow': redrow, 'id' : len(messages_list), 'owner_id': data["user_id"], 'owner_name': data["user_name"], 'channel_id': data["channel_id"], 'timestamp': str(datetime.now().strftime("%H:%M %D")), 'text': data["message_text"]}, broadcast=True)
+        emit("new_message", {'messages_counter': chnlmsg, 'redrow': redrow, 'id' : len(messages_list)-1, 'owner_id': data["user_id"], 'owner_name': data["user_name"], 'channel_id': data["channel_id"], 'timestamp': str(datetime.now().strftime("%H:%M %D")), 'text': unquote(data["message_text"])}, broadcast=True)
     else:
     	emit("new_message", {"success": False}, broadcast=False)

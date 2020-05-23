@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="433.3333333333333" height="433.3333333333333" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <title>MODIFY BUTTON</title>
+ <defs>
+  <filter id="svg_2_blur">
+   <feGaussianBlur stdDeviation="0.1"/>
+  </filter>
+  <linearGradient id="linearGradient1702">
+   <stop stop-color="#ffffff" stop-opacity="0.690722" offset="0" id="stop1703"/>
+   <stop stop-color="#ffffff" stop-opacity="0" offset="1" id="stop1704"/>
+  </linearGradient>
+  <linearGradient id="linearGradient1697">
+   <stop stop-color="#db210e" offset="0" id="stop1698"/>
+   <stop stop-color="#761107" offset="1" id="stop1699"/>
+  </linearGradient>
+  <linearGradient y2="0.000028" y1="0.962463" xlink:href="#linearGradient1697" x2="0.434766" x1="0.434766" id="linearGradient1076"/>
+  <linearGradient y2="0.933531" y1="0.077503" xlink:href="#linearGradient1697" x2="0.491787" x1="0.491787" id="linearGradient1077"/>
+  <linearGradient y2="1.321187" y1="-0.037698" xlink:href="#linearGradient1702" x2="0.482606" x1="0.478623" id="linearGradient1078"/>
+ </defs>
+ <g>
+  <title>Layer 1</title>
+  <g id="layer1">
+   <path fill="url(#linearGradient1076)" fill-rule="nonzero" stroke="url(#linearGradient1077)" stroke-width="1.364453" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="4" stroke-dashoffset="0" id="path1070" d="m394.369537,203.394852a190.403671,190.403671 0 1 1 -380.807378,0a190.403671,190.403671 0 1 1 380.807378,0z"/>
+   <path opacity="0.9" fill="url(#linearGradient1078)" fill-rule="evenodd" stroke-width="0.25000000pt" id="path1713" d="m342.277893,153.236755c44.367188,-0.966797 -12.400146,-123.152876 -135.681015,-123.802786c-134.561531,-0.68712 -162.095947,110.961355 -140.719437,112.997213c0,0 36.864159,5.062622 71.939575,14.856079c56.472656,15.930817 125.549133,-13.069244 152.768738,-17.2836c30.342468,-4.697876 47.373413,15.392426 51.692139,13.233093z"/>
+  </g>
+  <text transform="matrix(19.9177, 0, 0, 3.07559, -5587.26, -336.635)" xml:space="preserve" text-anchor="middle" font-family="Arial" font-size="24" id="svg_1" y="186.666656" x="290.666656" stroke-width="0" stroke="#000000" fill="#000000"/>
+  <text opacity="0.7" filter="url(#svg_2_blur)" transform="matrix(3.39276, 0, 0, 6.72471, -405.159, -1143.62)" xml:space="preserve" text-anchor="middle" font-family="Arial" font-size="24" id="svg_2" y="210.127033" x="178.858304" stroke-width="0" stroke="#ffffff" fill="#ffffff" font-weight="bold">DELETE</text>
+ </g>
+</svg>
