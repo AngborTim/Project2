@@ -95,7 +95,7 @@ def add_channel(data):
     channel_owner = data["channel_owner"]
     total_messages = 0
     if len(channels_list) == 0:
-        channel_id = len(channels_list)+1
+        channel_id = len(channels_list)
         channels_list.append(Channel(channel_name, total_messages, channel_owner, channel_id))
         emit("new_channel", {"success": True, 'channel_id': channel_id, 'channel_name': channel_name, 'channel_owner': channel_owner, 'total_messages': total_messages}, broadcast=True)
     else:
@@ -105,7 +105,7 @@ def add_channel(data):
                 duplicate = True
                 break
         if not duplicate:
-            channel_id = len(channels_list)+1
+            channel_id = len(channels_list)
             channels_list.append(Channel(channel_name, total_messages, channel_owner, channel_id))
             emit("new_channel", {"success": True, 'channel_id': channel_id, 'channel_name': channel_name, 'channel_owner': channel_owner, 'total_messages': total_messages}, broadcast=True)
         else:
@@ -114,16 +114,17 @@ def add_channel(data):
 
 @socketio.on("del_message")
 def del_message(data):
-    if data["message_id"] !="":
+    if data["message_id"] !='' and data["channel_id"] !='':
         for m in messages_list:
             if m["id"] == int(data["message_id"]):
                 for channel in channels_list:
                     if channel.id == int(data["channel_id"]):
                         channel.messages -= 1
+                        msgcnt = channel.messages
                 messages_list.remove(m)
-                emit("message_del", {"success": True}, broadcast=False)
-            else:
-                emit("message_del", {"success": False}, broadcast=False)
+                emit("message_del", {"success": True, "msgcount": msgcnt, "message_id": data["message_id"], "channel_id": data["channel_id"]}, broadcast=True)
+    else:
+        emit("message_del", {"success": False, "msgcount": msgcnt, "message_id": data["message_id"], "channel_id": data["channel_id"]}, broadcast=False)
 
 
 @socketio.on("add_message")
@@ -153,6 +154,6 @@ def add_message(data):
                     channel.messages += 1
                 chnlmsg = channel.messages
                 break
-        emit("new_message", {'messages_counter': chnlmsg, 'redrow': redrow, 'id' : len(messages_list)-1, 'owner_id': data["user_id"], 'owner_name': data["user_name"], 'channel_id': data["channel_id"], 'timestamp': str(datetime.now().strftime("%H:%M %D")), 'text': unquote(data["message_text"])}, broadcast=True)
+        emit("new_message", {'messages_counter': chnlmsg, 'redrow': redrow, 'id' : msg_id, 'owner_id': data["user_id"], 'owner_name': data["user_name"], 'channel_id': data["channel_id"], 'timestamp': str(datetime.now().strftime("%H:%M %D")), 'text': unquote(data["message_text"])}, broadcast=True)
     else:
     	emit("new_message", {"success": False}, broadcast=False)

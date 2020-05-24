@@ -80,7 +80,7 @@
 
       <div id="channels_list">
       {%for channel in channels_list %}
-        <span class="d-block chanel_name p-1 mb-1 border rounded bg-light text-success" data-channel_id="{{ channel.id }}" data-owner="{{ channel.owner }}">
+        <span class="chanel_name d-block p-1 mb-1 border rounded bg-light text-success" data-channel_id="{{ channel.id }}" data-owner="{{ channel.owner }}">
           <strong>{{ channel.name }}</strong>
           <span class="msg_count badge badge-primary badge-pill">{{ channel.messages }}</span>
         </span>
