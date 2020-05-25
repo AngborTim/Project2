@@ -74,6 +74,7 @@ function channel_bg() {
   //изменение фона кнопок каналов при наведении мышки
   document.querySelectorAll('.chanel_name').forEach(function(channel_block) {
     add_bg_change(channel_block);
+    add_bg_change(document.querySelector('.add_channel'));
   })
 }
 
@@ -118,15 +119,8 @@ function add_channel(){
       var frame = document.createElement("span");
       
       frame.setAttribute("class", "d-block chanel_name p-1 mb-1 border rounded bg-light text-success");
-      frame.setAttribute("data", "owner");
       frame.dataset.owner = data.channel_owner;
-      frame.setAttribute("data", "channel_id"); 
       frame.dataset.channel_id = data.channel_id;
-      // получаем сообщения для установления ячейки свойств активного канала
-      frame.onclick = () => {
-        get_messages(frame.dataset.channel_id);
-      };
-
 
       var bold = document.createElement('strong');
       var cnl_name = document.createTextNode(data.channel_name);
@@ -143,6 +137,14 @@ function add_channel(){
       document.getElementById("dropdown_menu").appendChild(frame_menu);
       add_bg_change(frame);
       add_bg_change(frame_menu);
+      // получаем сообщения для установления ячейки свойств активного канала
+      frame.onclick = () => {
+        get_messages(data.channel_id);
+      };
+      frame_menu.onclick = () => {
+        get_messages(data.channel_id);
+      };
+
       if (data.channel_owner == user_id) {
       // если канал пренадлежит текущему пользователю, то устанавливаем флаг, чтобы сделать канал активным
         localStorage.setItem('channel_id', data.channel_id);
