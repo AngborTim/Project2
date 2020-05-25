@@ -319,7 +319,7 @@ function draw_message_block(channelid, owner_id, id, text, owner_name, timestamp
       mod.find('#channel_id_for_del').val(channelid)
     }
     var deletion = document.createElement("IMG");
-    deletion.setAttribute("src", "static/delete.jpg");
+    deletion.setAttribute("src", "static/pic/delete.jpg");
     deletion.setAttribute("width", "15");
     deletion.setAttribute("height", "15");
     deletion.setAttribute("alt", "Delete your message");
@@ -330,6 +330,7 @@ function draw_message_block(channelid, owner_id, id, text, owner_name, timestamp
   
   message_span.appendChild(sml);
   messages_list.appendChild(message_span);
+  message_span.scrollIntoView();
 }
 
 /*
