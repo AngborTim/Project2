@@ -98,7 +98,6 @@ function add_channel_link_to_messages(){
 
 function add_channel(){
     btn = document.getElementById('create_chn_btn');
-    //var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
     socket.on('connect', function() {
       btn.onclick = function(){
         if (document.getElementById('channel_name').value !='') {
@@ -191,23 +190,16 @@ function add_new_channel_modal(){
 
 function del_message(){
     var del_btn = document.getElementById('delete_mgs');
-    //var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
     socket.on('connect', function() {
       delete_mgs.onclick = function(){
         $('#delete_msg').modal('hide');
-        alert('channel id: ' + document.getElementById('channel_id_for_del').value + ' message_id: ' + document.getElementById('msg_id_for_del').value)
         socket.emit('del_message', {'channel_id': document.getElementById('channel_id_for_del').value, 'message_id': document.getElementById('msg_id_for_del').value});
       }; 
     });
 
     socket.on('message_del', data => {
     if (data.success === true){
-
-тут у невладельца сообщения нет кнопки, по-этому не работает парент надо переджелать
-
-      alert('kind of OK but... msgcount:' + data.msgcnt + ' message_id: '+ data.message_id + ' channel_id: ' + data.channel_id)
-      alert(document.querySelector('[data-id = "' + data.message_id +'"]').closest("span").innerHTML)
-      var letshide = document.querySelector('[data-id = "' + data.message_id +'"]').closest("span");
+      var letshide = document.querySelector('[data-id = "' + data.message_id +'"]');//.closest("span")
       letshide.style.animationPlayState = 'running';
       letshide.addEventListener('animationend', () =>  {
         letshide.remove();
@@ -216,7 +208,7 @@ function del_message(){
      }
     
     if (data.success === false) {
-      alert('troubles! msgcount:' + data.msgcnt + ' message_id: '+ data.message_id + ' channel_id: ' + data.channel_id)
+      alert('troubles with deleting! msgcount:' + data.msgcnt + ' message_id: '+ data.message_id + ' channel_id: ' + data.channel_id)
     }
   });
 }
@@ -224,7 +216,6 @@ function del_message(){
 
 
 function add_message(){
-    //var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
     socket.on('connect', function() {
       document.getElementById("message_form").addEventListener("submit", function(event){
         event.preventDefault();
@@ -250,7 +241,7 @@ function add_message(){
       change_counter(data.channel_id, data.messages_counter);
     }
     else {
-        alert('NO nEW MESSAGE')
+        //alert('NO nEW MESSAGE')
     }
   });
 }
@@ -300,7 +291,7 @@ function draw_message_block(channelid, owner_id, id, text, owner_name, timestamp
   }
   var message_span = document.createElement("span");
   message_span.setAttribute("class", "message_block p-1 mb-1 border rounded d-flex w-100 justify-content-between");
-  //message_span.setAttribute("data-id", id);
+  message_span.setAttribute("data-id", id);
   message_span.setAttribute("data-owner_id", owner_id);
   var parag = document.createElement("p"); 
   var bold = document.createElement('strong');
@@ -320,7 +311,7 @@ function draw_message_block(channelid, owner_id, id, text, owner_name, timestamp
     var d_span = document.createElement("button");
     d_span.setAttribute("class", "m_del badge badge-secondary");
     d_span.setAttribute("title", "Delete your message");
-    d_span.setAttribute("data-id", id);
+    //d_span.setAttribute("data-id", id);
     d_span.setAttribute("data-channelid", channelid);    
     d_span.onclick = () => {
       var mod = $('#delete_msg').modal();

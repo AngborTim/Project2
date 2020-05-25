@@ -66,13 +66,9 @@ h5
 @keyframes hide {
     0% {
         opacity: 1;
-        height: 100%;
-        line-height: 100%;
     }
     75% {
         opacity: 0;
-        height: 100%;
-        line-height: 100%;
     }
     100% {
         opacity: 0;
