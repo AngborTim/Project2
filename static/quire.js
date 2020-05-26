@@ -200,16 +200,18 @@ function del_message(){
     });
 
     socket.on('message_del', data => {
-    if (data.success === true){
-      var letshide = document.querySelector('[data-id = "' + data.message_id +'"]');//.closest("span")
-      letshide.style.animationPlayState = 'running';
-      letshide.addEventListener('animationend', () =>  {
-        letshide.remove();
-      });
+    if (data.success != false){
+      if (channel_id == data.channel_id){
+        var letshide = document.querySelector('[data-id = "' + data.message_id +'"]');
+        letshide.style.animationPlayState = 'running';
+        letshide.addEventListener('animationend', () =>  {
+          letshide.remove();
+        });
+      }
       change_counter( data.channel_id, data.msgcount);
      }
     
-    if (data.success === false) {
+    if (data.success == false) {
       alert('troubles with deleting! msgcount:' + data.msgcnt + ' message_id: '+ data.message_id + ' channel_id: ' + data.channel_id)
     }
   });
