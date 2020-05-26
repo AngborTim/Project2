@@ -295,14 +295,13 @@ function draw_message_block(channelid, owner_id, id, text, owner_name, timestamp
   message_span.setAttribute("class", "message_block p-1 mb-1 border rounded d-flex w-100 justify-content-between");
   message_span.setAttribute("data-id", id);
   message_span.setAttribute("data-owner_id", owner_id);
-  var parag = document.createElement("p"); 
+  var parag = document.createElement('p'); 
   var bold = document.createElement('strong');
   var owner_n = document.createTextNode(owner_name +':');                   
-  var brr = document.createElement("br");
   var msg_txt = document.createTextNode(text);
   bold.appendChild(owner_n);
   parag.appendChild(bold);
-  parag.appendChild(brr);
+  parag.appendChild(document.createElement('br'));
   parag.appendChild(msg_txt);
   message_span.appendChild(parag);
   sml = document.createElement("small");
@@ -326,7 +325,7 @@ function draw_message_block(channelid, owner_id, id, text, owner_name, timestamp
     deletion.setAttribute("height", "15");
     deletion.setAttribute("alt", "Delete your message");
     d_span.appendChild(deletion);
-    sml.appendChild(brr);
+    sml.appendChild(document.createElement('br'));
     sml.appendChild(d_span);
   }
   
